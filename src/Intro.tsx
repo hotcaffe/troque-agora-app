@@ -11,7 +11,7 @@ export function Intro({navigation}: {navigation: NavigationProp<any>}) {
                     {/* <View style={styles.divider}/> */}
                </View>
                <View style={styles.middle}>
-                    <Pressable style={styles.button} onPress={() => navigation.navigate('SendDocs')}>
+                    <Pressable style={styles.button} onPress={() => navigation.navigate('SendBio')}>
                          <Text style={styles.buttonText}>Completar cadastro</Text>
                     </Pressable>
                </View>

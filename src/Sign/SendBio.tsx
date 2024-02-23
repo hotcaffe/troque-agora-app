@@ -1,45 +1,61 @@
-import { ActivityIndicator, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SignHeader } from "./SignHeader";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useEffect, useRef, useState } from "react";
-import { Camera, CameraType} from "expo-camera";
+import { Ionicons } from "@expo/vector-icons"
+import { Camera, CameraType, FaceDetectionResult } from "expo-camera"
+import { View, TouchableOpacity, ActivityIndicator, StyleSheet, Text, Image } from "react-native"
+import { SignHeader } from "./SignHeader"
+import { useRef, useState, useEffect } from "react";
 import Toast from "react-native-root-toast";
 
-export function SendDocs() {
+let count = 0;
+
+export function SendBio() {
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const cameraRef = useRef<Camera>(null);
-    const [frontImage , setFrontImage] = useState<string | undefined>(undefined);
-    const [backImage, setBackImage] = useState<string | undefined>(undefined);
+    const [image , setImage] = useState<string | undefined>(undefined);
     const [cameraOpen, setCameraOpen] = useState(false);
     const [isLoadingPicture, setIsLoadingPicture] = useState(false);
+    const [validFacePosition, setValidFacePosition] = useState(false);
 
-    async function takePicture() {
+    async function handleFaceRecognition(data: FaceDetectionResult) {
+        if (image || isLoadingPicture) return;
+        const face = data?.faces[0] as any;
+        const size = face?.bounds?.size;
+        const origin = face?.bounds?.origin;
+        if ((size && size.width >= 300 && size.height >= 300) && (origin && origin.x >= 0 && origin.x <= 50 && origin.y >= 150 && origin.y <= 250)) {
+            setValidFacePosition(true)
+            if (count >= 25) {
+                count = 0
+                await takePicture();
+            } else {
+                count += 1
+            }
+        } else {
+            setValidFacePosition(false)
+            count = 0
+        }  
+    }
+
+    async function takePicture() { 
         setIsLoadingPicture(true)
         if (cameraRef) {
             try {
-                const data = await cameraRef.current?.takePictureAsync();
-                if (data?.uri) {
-                    if (frontImage !== undefined) {
-                        setBackImage(data.uri)
-                    } else {
-                        setFrontImage(data.uri)
-                    }
+                const pic = await cameraRef.current?.takePictureAsync()?.then(data => data?.uri);
+                if (pic) {
+                    setImage(pic)
                 }
             } catch (error) {
                 console.log(error)
-                setFrontImage(undefined);
-                setBackImage(undefined);
-                setCameraOpen(false);
+                setImage(undefined)
             } finally {
                 setIsLoadingPicture(false)
-                if (frontImage !== undefined) setCameraOpen(false)
+                setCameraOpen(false)
+                setValidFacePosition(false)
             }
         }
     }
 
     function resetPictures() {
-        setFrontImage(undefined);
-        setBackImage(undefined);
+        setImage(undefined);
+        setValidFacePosition(false)
     }
     
     useEffect(() => {
@@ -62,39 +78,40 @@ export function SendDocs() {
         <View style={styles.container}>
             <SignHeader />
             <View style={styles.body}>
-                <Text style={styles.bodyTitle}>Documentos</Text>
+                <Text style={styles.bodyTitle}>Biometria</Text>
                 <View style={styles.divider}/>
                 <View style={{width: '100%', alignItems: 'center', justifyContent: 'center', paddingVertical: 20, height: '72%'}}>
-                    {(frontImage && backImage) ? 
-                        <TouchableOpacity style={{width: '100%', height: '100%', alignItems: 'center', backgroundColor: '#E2E8F0', paddingVertical: 5, flexDirection: 'row'}} 
+                    {(image) ? 
+                        <TouchableOpacity style={{width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', backgroundColor: '#E2E8F0', paddingVertical: 5, flexDirection: 'row'}} 
                             onPress={() => {
                                 resetPictures()
                                 setCameraOpen(true)
                             }}
                         >
-                            <Image style={{width: '60%', height: '95%', borderRadius: 20, position: 'absolute', left: 50, top: 5}} source={{uri: frontImage}}/>       
-                            <Image style={{width: '60%', height: '95%', borderRadius: 20, position: 'absolute', left: 100, top: 20}} source={{uri: backImage}}/>             
+                            <Image style={{width: '60%', height: '95%', borderRadius: 200}} source={{uri: image}}/>                  
                         </TouchableOpacity> :
                         <TouchableOpacity style={styles.button} onPress={() => setCameraOpen(true)}>
-                            <Ionicons name="md-camera-outline" color="#4FD1C5" size={80}/>
-                            <Text style={{color: '#4FD1C5', textAlign: 'center', fontWeight: '600'}}>Clique aqui para enviar uma foto do seu documento</Text>
+                            <View>
+                                <Ionicons name="scan-outline" color="#4FD1C5" size={130} style={{position: 'relative', left: 3}}/>
+                                <Ionicons name="person-outline" color="#4FD1C5" size={80} style={{position: 'absolute', left: 24, top: 24}}/>
+                            </View>
+                            <Text style={{color: '#4FD1C5', textAlign: 'center', fontWeight: '600'}}>Clique aqui para verificarmos sua biometria</Text>
                         </TouchableOpacity>
                     }
                 </View>
-                <TouchableOpacity style={(!frontImage || !backImage) ? {...styles.goButton, opacity: 0.6} : styles.goButton} disabled={!frontImage || !backImage}>
+                <TouchableOpacity style={(!image) ? {...styles.goButton, opacity: 0.6} : styles.goButton} disabled={!image}>
                     <Text style={styles.goButtonText}>Continuar</Text>
                 </TouchableOpacity>
             </View>
             {cameraOpen && <View style={{position: 'absolute', width: '100%', height: '100%'}}>
-                <Camera ref={cameraRef} type={CameraType.back} style={styles.camera} ratio="16:9">
-                    <View style={{height: '80%', width: '100%', alignItems: 'center', justifyContent: 'center', position: 'absolute', gap: 15, flexDirection: 'column'}}>
-                        <TouchableOpacity>
-                            <Text style={{color: 'white', width: '70%'}}>Alinhe seu documento ao centro do retângulo abaixo: </Text>
-                        </TouchableOpacity>
-                        <View style={{height: '75%', width: '70%', borderWidth: 5, borderColor: 'white', alignItems: 'center', justifyContent: 'center', opacity: 0.7}}>
+                <Camera ref={cameraRef} type={CameraType.front} ratio="16:9" onFacesDetected={(faces) => !isLoadingPicture && handleFaceRecognition(faces)}>
+                    <View style={{height: '100%', width: '100%', alignItems: 'center', justifyContent: 'center', position: 'absolute', gap: 15, flexDirection: 'column'}}>
+                        <View 
+                            style={validFacePosition ? {...styles.centralBox, borderColor: '#4FD1C5', borderWidth: 10} : styles.centralBox}
+                        >
                             <TouchableOpacity>
                                 <Text style={{color: 'white', width: '100%', fontWeight: '600', marginHorizontal: 'auto'}}>
-                                    {frontImage == undefined ? "Capture a FRENTE do documento" : "Agora capture a parte de TRÁS"}
+                                    {validFacePosition ? "Mantenha seu rosto centralizado" : "Posicione seu rosto ao centro desta figura"}
                                 </Text>
                             </TouchableOpacity>
                         </View>
@@ -105,10 +122,6 @@ export function SendDocs() {
                         </View>
                     }
                     <View style={{height: '100%', width: '100%', alignItems: 'flex-end', justifyContent: 'center', padding: 15, flexDirection: 'row', gap: 15}}>
-                        <View style={{width: 60}}/>
-                        <TouchableOpacity onPress={() => !isLoadingPicture && takePicture()}>
-                            <View style={isLoadingPicture ? {display: 'none'} : styles.cameraButton}/>
-                        </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => {
                                 resetPictures()
@@ -211,5 +224,15 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.2,
         shadowRadius: 3,
         elevation: 5,
+    },
+    centralBox: {
+        height: '70%',
+        width: '80%',
+        borderWidth: 5,
+        borderColor: 'white',
+        borderRadius: 200,
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: 0.7
     }
 })
