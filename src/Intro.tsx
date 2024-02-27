@@ -1,6 +1,6 @@
 import { NavigationContainerProps, NavigationProp } from "@react-navigation/native";
 import { NativeStackNavigationOptions } from "@react-navigation/native-stack";
-import { Button, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { Button, Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export function Intro({navigation}: {navigation: NavigationProp<any>}) {
      return (
@@ -11,17 +11,17 @@ export function Intro({navigation}: {navigation: NavigationProp<any>}) {
                     {/* <View style={styles.divider}/> */}
                </View>
                <View style={styles.middle}>
-                    <Pressable style={styles.button} onPress={() => navigation.navigate('SendBio')}>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SendBio')}>
                          <Text style={styles.buttonText}>Completar cadastro</Text>
-                    </Pressable>
+                    </TouchableOpacity>
                </View>
                <View style={styles.footer}>
-                    <Pressable style={{...styles.footerButton, ...styles.registerButton}}>
+                    <TouchableOpacity style={{...styles.footerButton, ...styles.registerButton}}>
                          <Text style={styles.registerButtonText}>Cadastrar-se</Text>
-                    </Pressable>
-                    <Pressable style={{...styles.footerButton, ...styles.loginButton}}>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={{...styles.footerButton, ...styles.loginButton}} onPress={() => navigation.navigate('Login')}>
                          <Text style={styles.loginButtonText}>Entrar</Text>
-                    </Pressable>
+                    </TouchableOpacity>
                </View>
           </View>
      )

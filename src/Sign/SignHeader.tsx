@@ -12,6 +12,7 @@ export function SignHeader() {
 const styles = StyleSheet.create({
     container: {
         height: '20%',
+        minHeight: 120,
         backgroundColor: '#4FD1C5',
         width: '100%',
         alignItems: 'center',

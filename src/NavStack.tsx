@@ -4,6 +4,7 @@ import { Intro } from "./Intro";
 import { SendDocs } from "./Sign/SendDocs";
 import { StyleSheet } from "react-native";
 import { SendBio } from "./Sign/SendBio";
+import { Login } from "./Login/Login";
 
 export default function NavStack() {
     const Stack = createNativeStackNavigator()
@@ -17,6 +18,9 @@ export default function NavStack() {
             />
             <Stack.Screen name='SendBio' component={SendBio} 
               options={{headerTitle: 'Biometria', headerTintColor: 'white', headerStyle: {backgroundColor: '#234E52'}, statusBarColor: '#234E52'}}
+            />
+            <Stack.Screen name='Login' component={Login} 
+              options={{headerTitle: 'Entrar', headerTintColor: 'white', headerStyle: {backgroundColor: '#234E52'}, statusBarColor: '#234E52'}}
             />
           </Stack.Navigator>
         </NavigationContainer>
