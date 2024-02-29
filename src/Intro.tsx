@@ -16,7 +16,7 @@ export function Intro({navigation}: {navigation: NavigationProp<any>}) {
                     </TouchableOpacity>
                </View>
                <View style={styles.footer}>
-                    <TouchableOpacity style={{...styles.footerButton, ...styles.registerButton}}>
+                    <TouchableOpacity style={{...styles.footerButton, ...styles.registerButton}} onPress={() => navigation.navigate('SignIn')}>
                          <Text style={styles.registerButtonText}>Cadastrar-se</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={{...styles.footerButton, ...styles.loginButton}} onPress={() => navigation.navigate('Login')}>

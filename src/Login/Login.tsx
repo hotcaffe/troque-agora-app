@@ -29,7 +29,7 @@ export function Login() {
     useEffect(() => {
         register('email')
         register('password')
-    })
+    }, [])
 
     return (
         <View style={container}>
