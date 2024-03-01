@@ -23,6 +23,7 @@
     "react-feather": "^2.0.10",
     "react-hook-form": "^7.50.1",
     "react-native": "0.73.4",
+    "react-native-masked-text": "^1.13.0",
     "react-native-paper": "^5.12.3",
     "react-native-root-siblings": "^5.0.1",
     "react-native-root-toast": "^3.5.1",

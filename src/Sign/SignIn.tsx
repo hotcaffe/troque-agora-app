@@ -1,4 +1,4 @@
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SignHeader } from "../Sign/SignHeader";
 import { Checkbox, Divider, HelperText, TextInput } from "react-native-paper";
 import { useEffect, useState } from "react";
@@ -7,6 +7,7 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as Yup from 'yup'
 import { IUserAddress, IUserProfile } from "../interfaces/profile";
 import { Ionicons } from "@expo/vector-icons";
+import { NavigationProp } from "@react-navigation/native";
 
 
 interface User extends IUserProfile, IUserAddress {}
@@ -17,7 +18,7 @@ const schema = Yup.object().shape({
     in_cpf: Yup.number().required("O CPF é obrigatório"),
     in_celular: Yup.number().required("O telefone é obrigatório"),
     in_idade: Yup.number().required("A idade é obrigatória"),
-    vc_email: Yup.string().required("O email é obrigatório"),
+    vc_email: Yup.string().default(""),
     bo_ativo: Yup.boolean().default(true),
     id_enderecoUsuarcio: Yup.number().default(0),
     vc_lougradouro: Yup.string().required("A rua é obrigatória"),
@@ -28,7 +29,7 @@ const schema = Yup.object().shape({
     vc_estado: Yup.string().default("")
 })
 
-export function SignIn() {
+export function SignIn({navigation}: {navigation: NavigationProp<any>}) {
     const {register, handleSubmit, setValue, formState, getValues} = useForm<User>({
         mode: 'all',
         resolver: yupResolver(schema)
@@ -37,9 +38,11 @@ export function SignIn() {
 
     const {errors} = formState
 
+    const [test, setTest] = useState();
+
     function onSubmit(data: any) {
-        // Alert.alert(data.email)
-        console.log(data)
+        // Alert.alert(data)
+        navigation.navigate('SignInAccount', data)
     }
 
     function searchCEP() {
@@ -63,7 +66,6 @@ export function SignIn() {
         <View style={container}>
             <SignHeader/>
             <View style={body}>
-                {/* <Text style={header}>Informe seus dados para se registrar</Text> */}
                 <KeyboardAvoidingView contentContainerStyle={{flex: 1, padding: 25, justifyContent: 'center'}} style={{flex: 1}} 
                     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 >
@@ -86,6 +88,7 @@ export function SignIn() {
                                     mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
                                     onChangeText={(text) => setValue('in_cpf', Number(text))}
                                     error={!!errors?.in_cpf}
+                                    keyboardType="numeric"
                                 />
                                 <HelperText type="error" visible={!!errors?.in_cpf}>
                                     {errors?.in_cpf ? String(errors.in_cpf.message) : ""}
@@ -96,6 +99,7 @@ export function SignIn() {
                                     mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
                                     onChangeText={(text) => setValue('in_celular', Number(text))}
                                     error={!!errors?.in_celular}
+                                    keyboardType="numeric"
                                 />
                                 <HelperText type="error" visible={!!errors?.in_celular}>
                                     {errors?.in_celular ? String(errors.in_celular.message) : ""}
@@ -106,6 +110,7 @@ export function SignIn() {
                                     mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
                                     onChangeText={(text) => setValue('in_idade', Number(text))}
                                     error={!!errors?.in_idade}
+                                    keyboardType="numeric"
                                 />
                                 <HelperText type="error" visible={!!errors?.in_idade}>
                                     {errors?.in_idade ? String(errors.in_idade.message) : ""}
@@ -149,6 +154,7 @@ export function SignIn() {
                                     mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
                                     onChangeText={(text) => setValue('in_numero', Number(text))}
                                     error={!!errors?.in_numero}
+                                    keyboardType="numeric"
                                 />
                                 <HelperText type="error" visible={!!errors?.in_numero}>
                                     {errors?.in_numero ? String(errors.in_numero.message) : ""}
@@ -167,7 +173,7 @@ export function SignIn() {
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
-                <TouchableOpacity style={button} onPress={handleSubmit(onSubmit)}>
+                <TouchableOpacity style={button} onPress={handleSubmit(onSubmit, (err) => console.log(err))}>
                     <Text style={buttonText}>Continuar</Text>
                 </TouchableOpacity>
             </View>
