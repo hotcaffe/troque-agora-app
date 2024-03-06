@@ -56,6 +56,8 @@ export function SignInAccount({navigation}: {navigation: NavigationProp<any>}) {
         register("vc_email")
         register("username")
         register("password")
+
+        console.log(route.params)
     }, [])
 
     return (

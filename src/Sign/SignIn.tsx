@@ -1,6 +1,6 @@
 import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SignHeader } from "../Sign/SignHeader";
-import { Checkbox, Divider, HelperText, TextInput } from "react-native-paper";
+import { ActivityIndicator, Button, Checkbox, Divider, HelperText, TextInput } from "react-native-paper";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -8,6 +8,8 @@ import * as Yup from 'yup'
 import { IUserAddress, IUserProfile } from "../interfaces/profile";
 import { Ionicons } from "@expo/vector-icons";
 import { NavigationProp } from "@react-navigation/native";
+import { CommonTextInput } from "../common/CommonTextInput";
+import { DateInput } from "../common/DateInput";
 
 
 interface User extends IUserProfile, IUserAddress {}
@@ -17,7 +19,7 @@ const schema = Yup.object().shape({
     vc_nome: Yup.string().required("O nome é obrigatório"),
     in_cpf: Yup.number().required("O CPF é obrigatório"),
     in_celular: Yup.number().required("O telefone é obrigatório"),
-    in_idade: Yup.number().required("A idade é obrigatória"),
+    dt_nascimento: Yup.date().max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), "Você deve ser maior de 18 anos!").required("A data de nascimento é obrigatória"),
     vc_email: Yup.string().default(""),
     bo_ativo: Yup.boolean().default(true),
     id_enderecoUsuarcio: Yup.number().default(0),
@@ -25,36 +27,55 @@ const schema = Yup.object().shape({
     in_numero: Yup.number().required("O número é obrigatório"),
     vc_complemento: Yup.string().default(""),
     vc_bairro: Yup.string().required("O bairro é obrigatório"),
-    vc_cidade: Yup.string().default(""),
-    vc_estado: Yup.string().default("")
+    vc_cidade: Yup.string().required("É obrigatório informar um CEP válido!"),
+    vc_estado: Yup.string().required("É obrigatório informar um CEP válido!")
 })
 
 export function SignIn({navigation}: {navigation: NavigationProp<any>}) {
-    const {register, handleSubmit, setValue, formState, getValues} = useForm<User>({
+    const {register, handleSubmit, setValue, formState, setError, clearErrors} = useForm<User>({
         mode: 'all',
         resolver: yupResolver(schema)
     });
     const [CEP, setCEP] = useState('00000000');
+    const [address, setAddress] = useState<any>()
 
     const {errors} = formState
-
-    const [test, setTest] = useState();
 
     function onSubmit(data: any) {
         // Alert.alert(data)
         navigation.navigate('SignInAccount', data)
     }
 
-    function searchCEP() {
-        if (CEP == '00000000') return;
-        console.log(CEP)
+    async function searchCEP() {
+        if (CEP == '00000000' || CEP?.length <- 7) {
+            setError('vc_cidade', {
+                message: 'O CEP deve possuir 8 caracteres'
+            })
+            return;
+        }
+        setCEP('loading')
+        try {
+            const data = await fetch(`https://viacep.com.br/ws/${CEP}/json/`) 
+                ?.then(res => res.json()) //substituir pela chamada na API
+            if (data.erro) throw new Error("CEP não encontrado!")
+            setAddress(data)
+            clearErrors('vc_cidade')
+            clearErrors('vc_estado')
+        } catch (error) {
+            console.log(error)
+            setError('vc_cidade', {
+                message: 'O CEP digitado não foi encontrado!'
+            })
+            setAddress(undefined)
+        }
+        setCEP(CEP)
     }
 
     useEffect(() => {
         register('vc_nome')
         register('in_cpf')
         register('in_celular')
-        register('in_idade')
+        register('dt_nascimento')
 
         register('vc_bairro')
         register('vc_lougradouro')
@@ -84,50 +105,87 @@ export function SignIn({navigation}: {navigation: NavigationProp<any>}) {
                                 </HelperText>
                             </View>
                             <View style={{width: '100%'}}>
-                                <TextInput style={input} label="CPF" 
-                                    mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
-                                    onChangeText={(text) => setValue('in_cpf', Number(text))}
+                                <CommonTextInput
+                                    label="CPF" name="in_cpf" 
+                                    style={input}
+                                    theme={{colors: {primary: '#2C7A7B'}}}
+                                    setValue={setValue}
+                                    type="cpf"
                                     error={!!errors?.in_cpf}
-                                    keyboardType="numeric"
                                 />
                                 <HelperText type="error" visible={!!errors?.in_cpf}>
                                     {errors?.in_cpf ? String(errors.in_cpf.message) : ""}
                                 </HelperText>
                             </View>
                             <View style={{width: '100%'}}>
-                                <TextInput style={input} label="Digite seu telefone" 
-                                    mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
-                                    onChangeText={(text) => setValue('in_celular', Number(text))}
+                                <CommonTextInput
+                                    label="Digite seu telefone" name="in_celular" 
+                                    style={input}
+                                    theme={{colors: {primary: '#2C7A7B'}}}
+                                    setValue={setValue}
+                                    type="cel-phone"
                                     error={!!errors?.in_celular}
-                                    keyboardType="numeric"
                                 />
                                 <HelperText type="error" visible={!!errors?.in_celular}>
                                     {errors?.in_celular ? String(errors.in_celular.message) : ""}
                                 </HelperText>
                             </View>
                             <View style={{width: '100%'}}>
-                                <TextInput style={input} label="Digite sua idade" 
-                                    mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
-                                    onChangeText={(text) => setValue('in_idade', Number(text))}
-                                    error={!!errors?.in_idade}
-                                    keyboardType="numeric"
+                                <DateInput 
+                                    name="dt_nascimento" display="calendar" label="Selecione sua data de nascimento" mode="date" 
+                                    setValue={setValue}
+                                    textInputProps={{
+                                        error: !!errors?.dt_nascimento,
+                                        theme: {colors: {primary: '#2C7A7B'}},
+                                        style: input
+                                    }}
                                 />
-                                <HelperText type="error" visible={!!errors?.in_idade}>
-                                    {errors?.in_idade ? String(errors.in_idade.message) : ""}
+                                <HelperText type="error" visible={!!errors?.dt_nascimento}>
+                                    {errors?.dt_nascimento ? String(errors.dt_nascimento.message) : ""}
                                 </HelperText>
                             </View>
                         </View>
                         <View style={{marginBottom: 30}}>
                             <Text style={title}>Endereço</Text>
                             <Divider style={{marginVertical: 10}}/>
-                            <View style={{width: '100%', flexDirection: 'row', marginBottom: 25, justifyContent: 'space-between', alignItems: 'center'}}>
-                                <TextInput style={{backgroundColor: '#E2E8F0', width: '80%'}} label="Digite seu CEP"
-                                    mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
-                                    keyboardType="numeric" onChangeText={(text) => setCEP(text)}
-                                />
-                                <TouchableOpacity style={squareButton} onPress={searchCEP}>
-                                    <Ionicons style={{color: 'white', fontSize: 25, textAlign: 'center'}} name="search"/>
-                                </TouchableOpacity>
+                            <View style={{width: '100%', marginBottom: 25}}>
+                                <View style={{width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                                    <CommonTextInput
+                                        label="Digite seu CEP" name="CEP"
+                                        style={{backgroundColor: '#E2E8F0', width: '80%'}}
+                                        theme={{colors: {primary: '#2C7A7B'}}}
+                                        setState={setCEP}
+                                        type="zip-code"
+                                    />
+                                    <TouchableOpacity style={squareButton} onPress={searchCEP}>
+                                        {
+                                            CEP == "loading" ?
+                                            <ActivityIndicator animating={true} color="white"/> :
+                                            <Ionicons style={{color: 'white', fontSize: 25, textAlign: 'center'}} name="search"/>
+                                        }
+                                    </TouchableOpacity>
+                                </View>
+                                <HelperText type="error" visible={!!(errors?.vc_cidade || errors?.vc_estado)}>
+                                    {(errors?.vc_cidade || errors?.vc_estado) ? String(errors?.vc_cidade?.message || errors?.vc_estado?.message) : ""}
+                                </HelperText>
+                                {address && 
+                                    <View style={{width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                                        <View style={{width: '75%'}}>
+                                            <TextInput style={input} value={address.localidade} disabled
+                                                mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
+                                                onChangeText={(text) => setValue('vc_cidade', text)}
+                                                error={!!errors?.vc_cidade}
+                                            />
+                                        </View>
+                                        <View style={{width: '20%'}}>
+                                            <TextInput style={input} value={address.uf} disabled
+                                                mode="flat" theme={{colors: {primary: '#2C7A7B'}}} 
+                                                onChangeText={(text) => setValue('vc_estado', text)}
+                                                error={!!errors?.vc_estado}
+                                            />
+                                        </View>
+                                    </View>
+                                }
                             </View>
                             <View style={{width: '100%'}}>
                                 <TextInput style={input} label="Digite seu bairro"
@@ -173,7 +231,7 @@ export function SignIn({navigation}: {navigation: NavigationProp<any>}) {
                         </View>
                     </ScrollView>
                 </KeyboardAvoidingView>
-                <TouchableOpacity style={button} onPress={handleSubmit(onSubmit, (err) => console.log(err))}>
+                <TouchableOpacity style={button} onPress={handleSubmit(onSubmit)}>
                     <Text style={buttonText}>Continuar</Text>
                 </TouchableOpacity>
             </View>
