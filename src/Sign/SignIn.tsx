@@ -22,7 +22,7 @@ const schema = Yup.object().shape({
     dt_nascimento: Yup.date().max(new Date(new Date().setFullYear(new Date().getFullYear() - 18)), "Você deve ser maior de 18 anos!").required("A data de nascimento é obrigatória"),
     vc_email: Yup.string().default(""),
     bo_ativo: Yup.boolean().default(true),
-    id_enderecoUsuarcio: Yup.number().default(0),
+    id_enderecoUsuario: Yup.number().default(0),
     vc_lougradouro: Yup.string().required("A rua é obrigatória"),
     in_numero: Yup.number().required("O número é obrigatório"),
     vc_complemento: Yup.string().default(""),
@@ -42,7 +42,7 @@ export function SignIn({navigation}: {navigation: NavigationProp<any>}) {
     const {errors} = formState
 
     function onSubmit(data: any) {
-        // Alert.alert(data)
+        data = {...data, dt_nascimento: JSON.stringify(data.dt_nascimento)}
         navigation.navigate('SignInAccount', data)
     }
 
@@ -59,6 +59,8 @@ export function SignIn({navigation}: {navigation: NavigationProp<any>}) {
                 ?.then(res => res.json()) //substituir pela chamada na API
             if (data.erro) throw new Error("CEP não encontrado!")
             setAddress(data)
+            setValue('vc_cidade', data.localidade)
+            setValue('vc_estado', data.uf)
             clearErrors('vc_cidade')
             clearErrors('vc_estado')
         } catch (error) {

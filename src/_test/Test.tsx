@@ -7,6 +7,7 @@ import { Button, TextInput } from "react-native-paper";
 import * as Yup from 'yup'
 import { CommonTextInput } from "../common/CommonTextInput";
 import { DateInput } from "../common/DateInput";
+import { PinInput } from "../common/PinInput";
 
 const schema = Yup.object().shape({
     cpf: Yup.string().required('O CPF é obrigatório!'),
@@ -49,6 +50,8 @@ export function Test(){
             />
             <DateInput name="dt_nascimento" display="calendar" mode="date" style={{width: '100%'}} label="Selecione sua data de nascimento" setValue={setValue}/>
             <Button onPress={handleSubmit(onSubmit, (err) => console.log(err))}>Confirmar</Button>
+
+            <PinInput />
         </View>
     )
 }

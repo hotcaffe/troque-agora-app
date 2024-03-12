@@ -49,7 +49,10 @@ export function SignInAccount({navigation}: {navigation: NavigationProp<any>}) {
         const params = route.params as IUserProfile & IUserAddress
         const {confirmPassword, ...userAccount} = data
         const user = {...params, ...userAccount};
+
         console.log(user)
+
+        navigation.navigate('SendDocs', user)
     }
 
     useEffect(() => {

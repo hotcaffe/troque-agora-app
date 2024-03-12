@@ -4,16 +4,19 @@ import { View, TouchableOpacity, ActivityIndicator, StyleSheet, Text, Image } fr
 import { SignHeader } from "./SignHeader"
 import { useRef, useState, useEffect } from "react";
 import Toast from "react-native-root-toast";
+import { NavigationProp, useRoute } from "@react-navigation/native";
 
 let count = 0;
 
-export function SendBio() {
+export function SendBio({navigation}: {navigation: NavigationProp<any>}) {
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const cameraRef = useRef<Camera>(null);
     const [image , setImage] = useState<string | undefined>(undefined);
     const [cameraOpen, setCameraOpen] = useState(false);
     const [isLoadingPicture, setIsLoadingPicture] = useState(false);
     const [validFacePosition, setValidFacePosition] = useState(false);
+
+    const route = useRoute();
 
     async function handleFaceRecognition(data: FaceDetectionResult) {
         if (image || isLoadingPicture) return;
@@ -57,9 +60,30 @@ export function SendBio() {
         setImage(undefined);
         setValidFacePosition(false)
     }
+
+    function onSubmit() {
+        const params = route.params;
+        const data = {
+            ...params,
+            face: image
+        }
+        console.log(data)
+        //realizar chamada para o backend passando todos os parâmetros
+        //roteiro de envio dos dados:
+        //1° - Enviar todos os dados cadastrados do usuário e aguardar o retorno da api com o id_usuario gerado
+        //2° - Após o retorno, realizar login com os dados do usuário na rota de login (ignorando a confirmação de email e utilizando a sesão apenas para envio das imagens)
+        //3° - Após o login, realizar uma chamada para cada imagem (frontImage, backImage e image [face]) para três rotas distintas e específicas para lidar com essa requisição.
+        //4° - Cada chamada deve passar nos parâmetros da URL o id_usuario que acabou de ser gerado
+        //5° - As rotas para lidar com a imagem do lado do backend devem validar a sessão do usuário.
+        //6° - A rota do backend deve enviar um email de confirmação e retornar o status do envio para o front
+        //7° - Após o procedimento e recebimento do status de email, desconectar o usuário e solicitar que o mesmo confirme o email
+
+        navigation.navigate('EmailConfirmation', data)
+    }
     
     useEffect(() => {
         requestPermission()
+        console.log(route.params)
     }, [])
     
     useEffect(() => {
@@ -99,7 +123,7 @@ export function SendBio() {
                         </TouchableOpacity>
                     }
                 </View>
-                <TouchableOpacity style={(!image) ? {...styles.goButton, opacity: 0.6} : styles.goButton} disabled={!image}>
+                <TouchableOpacity style={(!image) ? {...styles.goButton, opacity: 0.6} : styles.goButton} disabled={!image} onPress={() => image && onSubmit()}>
                     <Text style={styles.goButtonText}>Continuar</Text>
                 </TouchableOpacity>
             </View>

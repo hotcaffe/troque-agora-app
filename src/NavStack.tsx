@@ -7,6 +7,8 @@ import { SendBio } from "./Sign/SendBio";
 import { Login } from "./Login/Login";
 import { SignIn } from "./Sign/SignIn";
 import { SignInAccount } from "./Sign/SignInAccount";
+import { EmailConfirmation } from "./Sign/EmailConfirmation";
+import { QRCodeScanner } from "./Sign/QRCodeScanner";
 
 export default function NavStack() {
     const Stack = createNativeStackNavigator()
@@ -29,6 +31,12 @@ export default function NavStack() {
             />
             <Stack.Screen name='SignInAccount' component={SignInAccount} 
               options={{headerTitle: 'Conta', headerTintColor: 'white', headerStyle: {backgroundColor: '#234E52'}, statusBarColor: '#234E52'}}
+            />
+            <Stack.Screen name='EmailConfirmation' component={EmailConfirmation} 
+              options={{headerTitle: 'Confirme seu email', headerTintColor: 'white', headerStyle: {backgroundColor: '#234E52'}, statusBarColor: '#234E52'}}
+            />
+            <Stack.Screen name='QRCodeScanner' component={QRCodeScanner} 
+              options={{headerTitle: 'Leia o código na tela', headerTintColor: 'white', headerStyle: {backgroundColor: '#234E52'}, statusBarColor: '#234E52'}}
             />
           </Stack.Navigator>
         </NavigationContainer>

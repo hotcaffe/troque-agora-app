@@ -4,14 +4,17 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useEffect, useRef, useState } from "react";
 import { Camera, CameraType} from "expo-camera";
 import Toast from "react-native-root-toast";
+import { NavigationProp, useRoute } from "@react-navigation/native";
 
-export function SendDocs() {
+export function SendDocs({navigation}: {navigation: NavigationProp<any>}) {
     const [permission, requestPermission] = Camera.useCameraPermissions();
     const cameraRef = useRef<Camera>(null);
     const [frontImage , setFrontImage] = useState<string | undefined>(undefined);
     const [backImage, setBackImage] = useState<string | undefined>(undefined);
     const [cameraOpen, setCameraOpen] = useState(false);
     const [isLoadingPicture, setIsLoadingPicture] = useState(false);
+
+    const route = useRoute();
 
     async function takePicture() {
         setIsLoadingPicture(true)
@@ -41,9 +44,22 @@ export function SendDocs() {
         setFrontImage(undefined);
         setBackImage(undefined);
     }
+
+    function onSubmit() {
+        const params = route.params;
+        const data = {
+            ...params, 
+            document: {
+                frontImage,
+                backImage
+            }
+        }
+        navigation.navigate('SendBio', data)
+    }
     
     useEffect(() => {
         requestPermission()
+        console.log(route.params)
     }, [])
     
     useEffect(() => {
@@ -81,7 +97,9 @@ export function SendDocs() {
                         </TouchableOpacity>
                     }
                 </View>
-                <TouchableOpacity style={(!frontImage || !backImage) ? {...styles.goButton, opacity: 0.6} : styles.goButton} disabled={!frontImage || !backImage}>
+                <TouchableOpacity style={(!frontImage || !backImage) ? {...styles.goButton, opacity: 0.6} : styles.goButton} disabled={!frontImage || !backImage}
+                    onPress={() => frontImage && backImage && onSubmit()}
+                >
                     <Text style={styles.goButtonText}>Continuar</Text>
                 </TouchableOpacity>
             </View>

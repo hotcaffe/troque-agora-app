@@ -1,5 +1,5 @@
 interface IUserAddress {
-    id_enderecoUsuarcio: number;
+    id_enderecoUsuario: number;
     vc_lougradouro: string;
     in_numero: number;
     vc_complemento: string;

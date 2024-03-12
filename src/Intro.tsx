@@ -8,10 +8,9 @@ export function Intro({navigation}: {navigation: NavigationProp<any>}) {
                <View style={styles.header}>
                     <Image style={styles.logo} source={require('../assets/PinLogo.png')}/>
                     <Text style={styles.text}>TROQUE AGORA</Text>
-                    {/* <View style={styles.divider}/> */}
                </View>
                <View style={styles.middle}>
-                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('SendBio')}>
+                    <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('QRCodeScanner')}>
                          <Text style={styles.buttonText}>Completar cadastro</Text>
                     </TouchableOpacity>
                </View>
