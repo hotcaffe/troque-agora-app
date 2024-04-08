@@ -5,6 +5,8 @@ import { SignHeader } from "./SignHeader"
 import { useRef, useState, useEffect } from "react";
 import Toast from "react-native-root-toast";
 import { NavigationProp, useRoute } from "@react-navigation/native";
+import { ISignDocs } from "../interfaces/sign.docs";
+import axios from "axios";
 
 let count = 0;
 
@@ -61,29 +63,50 @@ export function SendBio({navigation}: {navigation: NavigationProp<any>}) {
         setValidFacePosition(false)
     }
 
-    function onSubmit() {
+    async function onSubmit() {
         const params = route.params;
         const data = {
             ...params,
             face: image
+        } as ISignDocs
+
+        try {
+            
+            const formData = new FormData() as any;
+            formData.append("images", {
+                uri: data.document.backImage,
+                name: 'backImage',
+                type: "image/jpg"
+            })
+            formData.append("images", {
+                uri: data.document.frontImage,
+                name: 'frontImage',
+                type: "image/jpg"
+            })
+            formData.append("images", {
+                uri: data.face,
+                name: 'face',
+                type: "image/jpg"
+            })
+           
+            await fetch('http://10.0.0.110:3001/user/complete', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                    Accept: "application/json",
+                    Authorization: data.token
+                },
+                body: formData
+            }).then(res => res.json()).catch(error => console.log(error))
+        } catch (error) {  
+            console.log('erro aqui', error)
         }
-        console.log(data)
-        //realizar chamada para o backend passando todos os parâmetros
-        //roteiro de envio dos dados:
-        //1° - Enviar todos os dados cadastrados do usuário e aguardar o retorno da api com o id_usuario gerado
-        //2° - Após o retorno, realizar login com os dados do usuário na rota de login (ignorando a confirmação de email e utilizando a sesão apenas para envio das imagens)
-        //3° - Após o login, realizar uma chamada para cada imagem (frontImage, backImage e image [face]) para três rotas distintas e específicas para lidar com essa requisição.
-        //4° - Cada chamada deve passar nos parâmetros da URL o id_usuario que acabou de ser gerado
-        //5° - As rotas para lidar com a imagem do lado do backend devem validar a sessão do usuário.
-        //6° - A rota do backend deve enviar um email de confirmação e retornar o status do envio para o front
-        //7° - Após o procedimento e recebimento do status de email, desconectar o usuário e solicitar que o mesmo confirme o email
 
         navigation.navigate('EmailConfirmation', data)
     }
     
     useEffect(() => {
         requestPermission()
-        console.log(route.params)
     }, [])
     
     useEffect(() => {

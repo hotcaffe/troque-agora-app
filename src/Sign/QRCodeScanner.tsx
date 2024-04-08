@@ -13,11 +13,11 @@ export function QRCodeScanner({navigation}: {navigation: NavigationProp<any>}) {
     useEffect(() => {
         requestPermission()
         // console.log(route.params)
-    }, [])
+    }, [permission])
 
     function onScan(data: any) {
-        console.log(data) //pegar o token e enviar para o backend e depois passar para a próxima tela
-        navigation.navigate('SendDocs', data)
+        // console.log(data) //pegar o token e enviar para o backend e depois passar para a próxima tela
+        navigation.navigate('SendDocs', {token: data})
     }
     
     return (
