@@ -59,7 +59,6 @@ export function SendDocs({navigation}: {navigation: NavigationProp<any>}) {
     
     useEffect(() => {
         requestPermission()
-        // console.log(route.params)
     }, [])
     
     useEffect(() => {
